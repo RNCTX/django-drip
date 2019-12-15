@@ -63,8 +63,7 @@ class SentDrip(models.Model):
     from_email = models.EmailField(null=True, default=None)
     from_email_name = models.CharField(max_length=150, null=True, default=None)
     reply_to = models.EmailField(null=True, default=None)
-
-
+    name = models.CharField(max_length=255, null=True, default=None)
 
 METHOD_TYPES = (
     ('filter', 'Filter'),
