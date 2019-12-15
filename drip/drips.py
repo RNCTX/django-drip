@@ -253,7 +253,8 @@ class DripBase(object):
                         from_email_name=self.from_email_name,
                         reply_to=self.reply_to,
                         subject=message_instance.subject,
-                        body=message_instance.body
+                        body=message_instance.body,
+                        name=self.name
                     )
                     count += 1
             except Exception as e:
