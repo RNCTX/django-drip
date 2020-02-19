@@ -10,12 +10,16 @@ from django.conf import settings
 from django.db.models import Q
 from django.template import Context, Template
 from django.core.mail import EmailMultiAlternatives
+from django.utils.encoding import force_bytes
 from django.utils.html import strip_tags
+from django.utils.http import urlsafe_base64_encode
 
 from drip.models import SentDrip
 from drip.utils import get_user_model
 
 from django.utils.timezone import now as conditional_now
+
+from users.tokens import unsubscribe_token
 
 
 import logging
@@ -58,7 +62,10 @@ class DripMessage(object):
     @property
     def context(self):
         if not self._context:
-            self._context = Context({'user': self.user})
+            token = unsubscribe_token.make_token(self.user)
+            uid = urlsafe_base64_encode(force_bytes(self.user.email))
+            unsub_link = settings.BASE_URL + '/unsubscribe/' + uid + '/' + token + '/'
+            self._context = Context({'user': self.user, 'unsubscribe': unsub_link})
         return self._context
 
     @property
