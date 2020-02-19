@@ -7,15 +7,27 @@ from django.conf import settings
 from django.conf.urls import url
 from django.db import models
 from django.forms import TextInput
+from django.utils.functional import curry
 from django_summernote.widgets import SummernoteWidget
 
 from drip.models import Drip, SentDrip, QuerySetRule
 from drip.drips import configured_message_classes, message_class_for
 from drip.utils import get_user_model
 
-
 class QuerySetRuleInline(admin.TabularInline):
     model = QuerySetRule
+    extra = 2
+
+    def get_formset(self, request, obj=None, **kwargs):
+        initial = []
+        if request.method == "GET":
+            initial.append({
+                'field_name': 'subscribe',
+                'field_value': 1
+            })
+        formset = super(QuerySetRuleInline, self).get_formset(request, obj, **kwargs)
+        formset.__init__ = curry(formset.__init__, initial=initial)
+        return formset
 
 
 class DripForm(forms.ModelForm):
