@@ -3,7 +3,11 @@ import json
 
 from django import forms
 from django.contrib import admin
+from django.conf import settings
 from django.conf.urls import url
+from django.db import models
+from django.forms import TextInput
+from django_summernote.widgets import SummernoteWidget
 
 from drip.models import Drip, SentDrip, QuerySetRule
 from drip.drips import configured_message_classes, message_class_for
@@ -21,6 +25,9 @@ class DripForm(forms.ModelForm):
     class Meta:
         model = Drip
         exclude = []
+        widgets = {
+            'body_html_template': SummernoteWidget(),
+        }
 
 class DripAdmin(admin.ModelAdmin):
     list_display = ('name', 'enabled', 'message_class')
@@ -29,6 +36,17 @@ class DripAdmin(admin.ModelAdmin):
     ]
     form = DripForm
     save_as = True
+
+    formfield_overrides = {
+        models.CharField: {'widget': TextInput(
+                           attrs={
+                                  'style': 'width: 610px;'})
+        },
+        models.EmailField: {'widget': TextInput(
+                           attrs={
+                                  'style': 'width: 610px;'})
+        },
+    }
 
     av = lambda self, view: self.admin_site.admin_view(view)
     def timeline(self, request, drip_id, into_past, into_future):
@@ -109,3 +127,8 @@ class SentDripAdmin(admin.ModelAdmin):
     list_display = [f.name for f in SentDrip._meta.fields]
     ordering = ['-id']
 admin.site.register(SentDrip, SentDripAdmin)
+
+Drip._meta.get_field('body_html_template').default = '<br /><br /><p style="text-align:center;font-size:small;">Click <a href="https://{{ unsubscribe }}">here</a> to unsubscribe from future emails.</p>'
+Drip._meta.get_field('from_email_name').default = settings.EMAIL_ADMIN
+Drip._meta.get_field('from_email').default = settings.SERVER_EMAIL
+Drip._meta.get_field('reply_to').default = settings.SERVER_EMAIL
