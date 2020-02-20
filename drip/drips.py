@@ -251,19 +251,20 @@ class DripBase(object):
         for user in self.get_queryset():
             message_instance = MessageClass(self, user)
             try:
-                result = message_instance.message.send()
-                if result:
-                    SentDrip.objects.create(
-                        drip=self.drip_model,
-                        user=user,
-                        from_email=self.from_email,
-                        from_email_name=self.from_email_name,
-                        reply_to=self.reply_to,
-                        subject=message_instance.subject,
-                        body=message_instance.body,
-                        name=self.name
-                    )
-                    count += 1
+#               result = message_instance.message.send()
+#               if result:
+                message_instance.message.send()
+                SentDrip.objects.create(
+                    drip=self.drip_model,
+                    user=user,
+                    from_email=self.from_email,
+                    from_email_name=self.from_email_name,
+                    reply_to=self.reply_to,
+                    subject=message_instance.subject,
+                    body=message_instance.body,
+                    name=self.name
+                )
+                count += 1
             except Exception as e:
                 logging.exception(
                     "Failed to send drip %s to user %s: %s" % (
