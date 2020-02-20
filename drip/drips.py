@@ -1,5 +1,6 @@
 import operator
 import functools
+import re
 
 try:
     from importlib import import_module
@@ -91,7 +92,10 @@ class DripMessage(object):
     @property
     def plain(self):
         if not self._plain:
-            self._plain = strip_tags(self.body)
+            self._strip_footer_link = re.sub(r'<br><br>(.*)<a href="', '\n\n\n\nClick the link below to unsubscribe from future emails:\n', self.body)
+            self._strip_footer_tags = re.sub(r'\">here(.*)future emails.<\/p>', '', self._strip_footer_link)
+            self._strip_markup = strip_tags(self._strip_footer_tags)
+            self._plain = self._strip_markup
         return self._plain
 
     @property
