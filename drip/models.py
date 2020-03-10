@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from modelcluster.models import ClusterableModel
+from modelcluster.fields import ParentalKey
 from django.db import models
 from django.core.exceptions import ValidationError
 from django.conf import settings
@@ -7,11 +9,13 @@ from django.utils.dateparse import parse_duration
 from django.utils import timezone
 
 from drip.utils import get_user_model
+from wagtail.core.models import Orderable
+from wagtail.admin.edit_handlers import FieldPanel, InlinePanel
 
 
-class Drip(models.Model):
+class Drip(ClusterableModel):
     date = models.DateTimeField(auto_now_add=True)
-    lastchanged = models.DateTimeField(auto_now=True)
+    last_changed = models.DateTimeField(auto_now=True)
 
     name = models.CharField(
         max_length=255,
@@ -31,6 +35,16 @@ class Drip(models.Model):
     body_html_template = models.TextField(null=True, blank=True,
         help_text='You will have settings and user in the context.')
     message_class = models.CharField(max_length=120, blank=True, default='default')
+
+    panels = [
+        FieldPanel('name'),
+        FieldPanel('enabled'),
+        FieldPanel('from_email'),
+        FieldPanel('from_email_name'),
+        FieldPanel('subject_template'),
+        FieldPanel('body_html_template'),
+        InlinePanel('queryset_rules'),
+    ]
 
     @property
     def drip(self):
@@ -87,19 +101,26 @@ LOOKUP_TYPES = (
     ('iendswith', 'ends with (case insensitive)'),
 )
 
-class QuerySetRule(models.Model):
+class QuerySetRule(Orderable):
     date = models.DateTimeField(auto_now_add=True)
-    lastchanged = models.DateTimeField(auto_now=True)
+    last_changed = models.DateTimeField(auto_now=True)
 
-    drip = models.ForeignKey(Drip, related_name='queryset_rules', on_delete=models.CASCADE)
+    drip = ParentalKey(Drip, related_name='queryset_rules', on_delete=models.CASCADE)
 
     method_type = models.CharField(max_length=12, default='filter', choices=METHOD_TYPES)
-    field_name = models.CharField(max_length=128, verbose_name='Field name of User')
+    field_name = models.CharField(max_length=128, verbose_name='User Field')
     lookup_type = models.CharField(max_length=12, default='exact', choices=LOOKUP_TYPES)
 
     field_value = models.CharField(max_length=255,
         help_text=('Can be anything from a number, to a string. Or, do ' +
                    '`now-7 days` or `today+3 days` for fancy timedelta.'))
+
+    panels = [
+        FieldPanel('method_type'),
+        FieldPanel('field_name'),
+        FieldPanel('lookup_type'),
+        FieldPanel('field_value'),
+    ]
 
     def clean(self):
         User = get_user_model()
