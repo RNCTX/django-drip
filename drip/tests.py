@@ -525,7 +525,7 @@ class DripsTestCase(TestCase):
         )
         self.assertEqual(response.status_code, 302)
 
-        newest = Drip.objects.latest('lastchanged')
+        newest = Drip.objects.latest('last_changed')
         self.assertNotEqual(newest.id, model.id)
         self.assertNotEqual(
             newest.queryset_rules.first().id,
