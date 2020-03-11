@@ -33,7 +33,7 @@ class Drip(ClusterableModel):
         help_text='Set a custom reply-to email.')
     subject_template = models.TextField(null=True, blank=True)
     body_html_template = models.TextField(null=True, blank=True,
-        help_text='You will have settings and user in the context.')
+        help_text='You will have settings and user in the context. For example {{ user.first_name }} {{ user.last_name }} will return "Joe Smith", and {{ settings.BASE_URL }} will return your domain name.')
     message_class = models.CharField(max_length=120, blank=True, default='default')
 
     panels = [
